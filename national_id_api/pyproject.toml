@@ -8,6 +8,11 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 [tool.poetry.dependencies]
+fastapi = {extras = ["standard"], version = "^0.116.1"}
+uvicorn = {extras = ["standard"], version = "^0.35.0"}
+uvloop = { version = ">=0.21.0,<0.22.0", markers = "sys_platform != 'win32'" }
+
+
 
 
 [tool.poetry]
