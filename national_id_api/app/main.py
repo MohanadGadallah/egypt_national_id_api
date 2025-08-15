@@ -1,7 +1,7 @@
-from fastapi import FastAPI
 import logging
+from fastapi import FastAPI
 
-# Configure basic logging
+
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
