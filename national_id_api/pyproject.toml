@@ -1,0 +1,19 @@
+[project]
+name = "national-id-api"
+version = "0.1.0"
+description = "An API to verify and extract information from Egyptian national IDs. The API validates the ID number"
+authors = [
+    {name = "Mohanad Gadallah",email = "mohanad.gad38@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+[tool.poetry.dependencies]
+
+
+[tool.poetry]
+packages = [{include = "app"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
