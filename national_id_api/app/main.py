@@ -74,9 +74,10 @@ async def test_endpoint(data:InputID,request:Request):
     national_id = NationalID(id_number=data.national_id)
     national_id.validate_century()
     national_id.validate_year()
+    national_id.validate_month()
     logger.info("test done ")
     logger.error("ddd")
     logger.critical("gggg")
     logger.debug("dd")
-    return {"message": national_id.year_of_birth}
+    return {"message": national_id.month_of_birth_name}
 

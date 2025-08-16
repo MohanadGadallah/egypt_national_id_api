@@ -1,6 +1,7 @@
 from typing import Optional
 from enum import Enum
 from datetime import datetime
+import calendar
 from dataclasses import dataclass
 
 class Governorates(Enum):
@@ -46,6 +47,7 @@ class NationalID:
     is_valid:bool=False
     year_of_birth: Optional[int] = None
     month_of_birth: Optional[int] = None
+    month_of_birth_name: Optional[str] = None
     day_of_birth: Optional[int] = None
     governorate_id: Optional[str] = None
     governorate_name:Optional[int]=None
@@ -106,6 +108,17 @@ class NationalID:
             return False  
         self.year_of_birth=full_year
         return True
+    def validate_month(self) -> bool:
+        """validates the month part of the ID (1 to 12)
 
+        Returns:
+            bool: _description_
+        """
+        self.month_of_birth = int(self.id_number[3:5])
+        if self.month_of_birth in range(1, 13):
+            self.month_of_birth_name = calendar.month_name[self.month_of_birth]
+            return True
+        
+        return False
     
     
