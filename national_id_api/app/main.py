@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.schema import InputID
+from app.national_id import NationalID
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -70,9 +71,12 @@ async def test_endpoint(data:InputID,request:Request):
     Returns:
         _type_: _description_
     """
+    national_id = NationalID(id_number=data.national_id)
+    national_id.validate_century()
+    national_id.validate_year()
     logger.info("test done ")
     logger.error("ddd")
     logger.critical("gggg")
     logger.debug("dd")
-    return {"message": data.national_id}
+    return {"message": national_id.year_of_birth}
 
