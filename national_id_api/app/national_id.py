@@ -50,8 +50,8 @@ class NationalID:
     month_of_birth_name: Optional[str] = None
     day_of_birth: Optional[int] = None
     gender:Optional[str]=None
-    governorate_id: Optional[str] = None
-    governorate_name:Optional[int]=None
+    governorate_id: Optional[int] = None
+    governorate_name:Optional[str]=None
     unique_num: Optional[int] = None
     century: Optional[int] = None
     verification_digit: Optional[int] = None
@@ -138,4 +138,10 @@ class NationalID:
             else:
                 return self.day_of_birth in range(29)
         return False
-    
+    def validate_governorate(self) -> bool:
+        self.governorate_id = int(self.id_number[7:9])
+        for governorate in Governorates:
+            if governorate.value == self.governorate_id:
+                self.governorate_name = governorate.name.capitalize().replace("_"," ")
+                return True
+        return False

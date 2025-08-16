@@ -76,9 +76,10 @@ async def test_endpoint(data:InputID,request:Request):
     national_id.validate_year()
     national_id.validate_month()
     national_id.validate_day()
+    national_id.validate_governorate()
     logger.info("test done ")
     logger.error("ddd")
     logger.critical("gggg")
     logger.debug("dd")
-    return {"message": national_id.day_of_birth}
+    return {"message": national_id.governorate_name}
 
