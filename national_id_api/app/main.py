@@ -1,7 +1,7 @@
 
 import logging
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Header, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -36,25 +36,22 @@ app = FastAPI(title="test")
 app = FastAPI()
 
 
-@app.exception_handler(StarletteHTTPException)
-async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """_summary_
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    logger.error(f"HTTPException: {exc.detail}")
 
-    Args:
-        request (Request): _description_
-        exc (StarletteHTTPException): _description_
+    if isinstance(exc.detail, dict):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.detail
+        )
 
-    Returns:
-        _type_: _description_
-
-    """
-    logger.error(f"Validation failed: {str(exc.detail)}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "data": None,
-            "message": f"An error occurred: {exc.detail}",
-            "code": ErrorCodeEnum.PARSING_ERROR.value,
+            "message": f"An error occurred: {str(exc.detail)}",
+            "code": ErrorCodeEnum.SOMETHING_WENT_WRONG.value,
         }
     )
 
@@ -99,10 +96,17 @@ app.state.limiter = limiter
 # API
 
 
+def verify_api_key(x_api_key: str = Header(None)):
+    """Validates the API key from the request header."""
+    if x_api_key != "tru":
+        return False
+    return True
+
+
 @app.post("/validate-id")
 @limiter.limit("100/minute")
 @limiter.limit("5/second")
-async def validate_national_id(data: InputID, request: Request):
+async def validate_national_id(data: InputID, request: Request, valid_key: str = Depends(verify_api_key),):
     """
     Validates the provided Egyptian National ID.
 
@@ -114,6 +118,15 @@ async def validate_national_id(data: InputID, request: Request):
         JSONResponse: A structured response indicating whether the ID is valid,
                       along with extracted data and a message.
     """
+    if not valid_key:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "data": None,
+                "message": "Unauthorized Access. Thanks for using TRU National ID Service",
+                "code": ErrorCodeEnum.UNAUTHORIZED.value,
+            },
+        )
     try:
         national_id = NationalID(id_number=str(data.national_id))
         logger.info("Validation completed. Result: %s",
