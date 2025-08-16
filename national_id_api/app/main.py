@@ -1,5 +1,6 @@
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status, Header, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -13,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from app.schema import InputID
 from app.response_codes import SuccessCodeEnum, ErrorCodeEnum
 from app.national_id import NationalID
+from app.database_settings import DB_MANAGER
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -29,10 +31,31 @@ limiter = Limiter(
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-app = FastAPI(title="test")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """ startup and shut down events
 
-app = FastAPI()
+    """
+
+    DB_MANAGER.initialize()
+
+    try:
+        await DB_MANAGER.validate_connection()
+        logger.info(" Connected to the database")
+    except Exception as e:
+        logger.critical(
+            " Failed to connect to the database during startup: %s", e)
+
+    yield
+
+    try:
+        await DB_MANAGER.dispose()
+        logger.info(" Database connection disposed")
+    except Exception as e:
+        logger.warning("Failed to dispose DB engine: %s", e)
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.exception_handler(HTTPException)

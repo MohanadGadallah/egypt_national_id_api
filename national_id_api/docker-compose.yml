@@ -1,18 +1,18 @@
 
 services:
-  app:
-    container_name: tru_national_id
-    build:
-      context: .
-    ports:
-      - "8000:8000"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: "2.0"
-    networks:
-      - my-network
+  # app:
+  #   container_name: tru_national_id
+  #   build:
+  #     context: .
+  #   ports:
+  #     - "8000:8000"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 2G
+  #         cpus: "2.0"
+  #   networks:
+  #     - my-network
 
   postgres:
     image: postgres:17.0
