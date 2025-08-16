@@ -1,10 +1,12 @@
 import logging
-from fastapi import FastAPI,Request
+
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.schema import InputID
-from app.response_codes import SuccessCodeEnum,ErrorCodeEnum
+from app.response_codes import SuccessCodeEnum, ErrorCodeEnum
 from app.national_id import NationalID
 
 logging.basicConfig(
@@ -14,14 +16,12 @@ logging.basicConfig(
 )
 
 
-logger :logging.Logger= logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 app = FastAPI(title="test")
 
 
-
 app = FastAPI()
-
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -34,15 +34,18 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
 
     Returns:
         _type_: _description_
+
     """
+    logger.error(f"Validation failed: {str(exc.detail)}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "data": None,
             "message": f"An error occurred: {exc.detail}",
-            "code": "ErrorCodeEnum.SERVER_ERROR.value",
+            "code": ErrorCodeEnum.PARSING_ERROR.value,
         }
     )
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -55,46 +58,59 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     Returns:
         _type_: _description_
     """
+    logger.error(f"Validation failed: {str(exc.body)}")
     return JSONResponse(
-        status_code=422,  
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "data": None,
-            "message":f"Validation failed: {str(exc.body)}",
+            "message": f"Validation failed: {str(exc.body)}",
             "code": ErrorCodeEnum.PARSING_ERROR.value,
         }
     )
 
 
 @app.post("/validate-id")
-async def validate_national_id(data:InputID,request:Request):
-    """_summary_
+async def validate_national_id(data: InputID, request: Request):
+    """
+    Validates the provided Egyptian National ID.
+
+    The National ID must:
+    - Be exactly 14 digits long.
+    - Contain only numeric characters.
 
     Returns:
-        _type_: _description_
+        JSONResponse: A structured response indicating whether the ID is valid,
+                      along with extracted data and a message.
     """
-    national_id = NationalID(id_number=data.national_id)
-    logger.info("test done ")
-    logger.error("ddd")
-    logger.critical("gggg")
-    logger.debug("dd")
-    if national_id.is_valid:
+    try:
+        national_id = NationalID(id_number=str(data.national_id))
+        logger.info("Validation completed. Result: %s",
+                    "Valid" if national_id.is_valid else "Fake")
+        if national_id.is_valid:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "data": national_id.__dict__,
+                    "message": " Valid ID .thanks for using TRU National ID Service",
+                    "code": SuccessCodeEnum.VALID_ID.value
+                }
+            )
+        else:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "data": national_id.__dict__,
+                    "message": "Fake ID .Thanks for using TRU National ID Service",
+                    "code": ErrorCodeEnum.INVALID_ID.value
+                }
+            )
+    except Exception as except_error:
+        logger.critical("unhandled exception error: %s", except_error)
         return JSONResponse(
-            status_code=200,
+            status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                "data": national_id.__dict__,
-                "message": " Valid ID .thanks for using TRU National ID Service",
-                "code": SuccessCodeEnum.VALID_ID.value
+                "data": {},
+                "message": "Something went wrong! .Thanks for using TRU National ID Service",
+                "code": ErrorCodeEnum.SOMETHING_WENT_WRONG.value
             }
         )
-    else:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "data": national_id.__dict__,
-                "message": "Fake ID .Thanks for using TRU National ID Service",
-                "code": ErrorCodeEnum.INVALID_ID.value
-            }
-        )
-        
-
-
