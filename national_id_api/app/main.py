@@ -1,9 +1,15 @@
+
 import logging
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
 
 from app.schema import InputID
 from app.response_codes import SuccessCodeEnum, ErrorCodeEnum
@@ -13,6 +19,12 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+)
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10/minute"],
+    storage_uri="memory://",
+    strategy="fixed-window"
 )
 
 
@@ -69,7 +81,27 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        content={
+            "data": None,
+            "message": "Too many requests. Please wait and try again.",
+            "code": ErrorCodeEnum.TOO_MANY_REQUEST.value
+        }
+    )
+
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
+
+app.add_middleware(SlowAPIMiddleware)
+app.state.limiter = limiter
+
+# API
+
+
 @app.post("/validate-id")
+@limiter.limit("100/minute")
+@limiter.limit("5/second")
 async def validate_national_id(data: InputID, request: Request):
     """
     Validates the provided Egyptian National ID.
@@ -109,7 +141,7 @@ async def validate_national_id(data: InputID, request: Request):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                "data": {},
+                "data": None,
                 "message": "Something went wrong! .Thanks for using TRU National ID Service",
                 "code": ErrorCodeEnum.SOMETHING_WENT_WRONG.value
             }
