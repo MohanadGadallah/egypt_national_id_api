@@ -46,7 +46,7 @@ class NationalID:
     """
     id_number: str
     is_valid: bool = False
-    fake_id_reason: Optional[str] = ""
+    invalid_id_reason: Optional[str] = ""
     year_of_birth: Optional[int] = None
     month_of_birth: Optional[int] = None
     month_of_birth_name: Optional[str] = None
@@ -89,7 +89,7 @@ class NationalID:
         self.id_number = str(self.id_number)
         if len(self.id_number) == 14 and self.id_number.isdigit():
             return True
-        self.fake_id_reason = f"{self.fake_id_reason} invalid length or non numeric string and"
+        self.invalid_id_reason = f"{self.invalid_id_reason} invalid length or non numeric string and"
         return False
 
     def _validate_century(self) -> bool:
@@ -102,7 +102,7 @@ class NationalID:
         self.century = int(self.id_number[0])
         if self.century in [2, 3]:
             return True
-        self.fake_id_reason = f"{self.fake_id_reason} invalid century part. and"
+        self.invalid_id_reason = f"{self.invalid_id_reason} invalid century part. and"
         return False
 
     def _validate_year(self) -> bool:
@@ -122,7 +122,7 @@ class NationalID:
             full_year = 2000 + self.year_of_birth
         self.year_of_birth = full_year
         if full_year > current_year:
-            self.fake_id_reason = f"{self.fake_id_reason} Year of birth is in the future. and"
+            self.invalid_id_reason = f"{self.invalid_id_reason} Year of birth is in the future. and"
             return False
 
         return True
@@ -137,7 +137,7 @@ class NationalID:
         if self.month_of_birth in range(1, 13):
             self.month_of_birth_name = calendar.month_name[self.month_of_birth]
             return True
-        self.fake_id_reason = f"{self.fake_id_reason} invalid month. and"
+        self.invalid_id_reason = f"{self.invalid_id_reason} invalid month. and"
         return False
 
     def _validate_day(self) -> bool:
@@ -155,7 +155,7 @@ class NationalID:
             if 1 <= self.day_of_birth <= num_days_in_month:
                 return True
 
-        self.fake_id_reason = f"{self.fake_id_reason} invalid day for the month. and"
+        self.invalid_id_reason = f"{self.invalid_id_reason} invalid day for the month. and"
         return False
 
     def _validate_governorate(self) -> bool:
@@ -169,7 +169,7 @@ class NationalID:
             if governorate.value == self.governorate_id:
                 self.governorate_name = governorate.name.capitalize().replace("_", " ")
                 return True
-        self.fake_id_reason = f"{self.fake_id_reason} invalid governorate ID. "
+        self.invalid_id_reason = f"{self.invalid_id_reason} invalid governorate ID. "
         return False
 
     def _validate_gender(self) -> bool:

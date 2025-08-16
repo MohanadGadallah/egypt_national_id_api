@@ -54,3 +54,9 @@ DB_MANAGER = DatabaseManager(settings.DATABASE_URL)
 
 class Base(so.DeclarativeBase):
     pass
+
+
+async def db_session():
+    async with DB_MANAGER.session() as session:
+        yield session
+        await session.close()

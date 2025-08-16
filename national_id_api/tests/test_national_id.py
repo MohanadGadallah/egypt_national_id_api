@@ -10,7 +10,7 @@ def test_valid_id() -> None:
     valid_id: NationalID = NationalID(id_number=VAILD_ID_NUMBER)
     assert valid_id.id_number == VAILD_ID_NUMBER
     assert valid_id.is_valid is True
-    assert valid_id.fake_id_reason == ""
+    assert valid_id.invalid_id_reason == ""
     assert valid_id.year_of_birth == 1999
     assert valid_id.month_of_birth == 5
     assert valid_id.month_of_birth_name == "May"
@@ -25,7 +25,7 @@ def test_invalid_length() -> None:
     invalid_id: NationalID = NationalID(id_number="2123456789012")
     assert invalid_id.is_valid is False
     assert "invalid length or non numeric string" in str(
-        invalid_id.fake_id_reason)
+        invalid_id.invalid_id_reason)
 
 
 def test_invalid_century() -> None:
@@ -33,7 +33,7 @@ def test_invalid_century() -> None:
     """
     invalid_id: NationalID = NationalID(id_number="41234567890123")
     assert invalid_id.is_valid is False
-    assert "invalid century part" in str(invalid_id.fake_id_reason)
+    assert "invalid century part" in str(invalid_id.invalid_id_reason)
 
 
 def test_future_year() -> None:
@@ -41,7 +41,7 @@ def test_future_year() -> None:
     future_id: NationalID = NationalID(id_number="33035000000000")
     assert future_id.is_valid is False
     assert future_id.year_of_birth == 2030
-    assert "Year of birth is in the future" in str(future_id.fake_id_reason)
+    assert "Year of birth is in the future" in str(future_id.invalid_id_reason)
 
 
 def test_invalid_month() -> None:
@@ -49,7 +49,7 @@ def test_invalid_month() -> None:
     """
     invalid_month_id: NationalID = NationalID(id_number="21213167890123")
     assert invalid_month_id.is_valid is False
-    assert "invalid month" in str(invalid_month_id.fake_id_reason)
+    assert "invalid month" in str(invalid_month_id.invalid_id_reason)
 
 
 def test_invalid_day() -> None:
@@ -57,7 +57,7 @@ def test_invalid_day() -> None:
     """
     invalid_day_id: NationalID = NationalID(id_number="21230231234567")
     assert invalid_day_id.is_valid is False
-    assert "invalid day for the month" in str(invalid_day_id.fake_id_reason)
+    assert "invalid day for the month" in str(invalid_day_id.invalid_id_reason)
 
 
 def test_invalid_governorate() -> None:
@@ -66,7 +66,7 @@ def test_invalid_governorate() -> None:
     invalid_governorate_id = NationalID(id_number="21239999999999")
     assert invalid_governorate_id.is_valid is False
     assert "invalid governorate ID" in str(
-        invalid_governorate_id.fake_id_reason)
+        invalid_governorate_id.invalid_id_reason)
 
 
 def test_gender_validation() -> None:
@@ -91,4 +91,5 @@ def test_non_leap_year() -> None:
     """
     non_leap_year_id = NationalID(id_number="21202319000000")
     assert non_leap_year_id.is_valid is False
-    assert "invalid day for the month" in str(non_leap_year_id.fake_id_reason)
+    assert "invalid day for the month" in str(
+        non_leap_year_id.invalid_id_reason)

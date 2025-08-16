@@ -6,7 +6,8 @@ branch = True
 concurrency = multiprocessing,thread,greenlet
 omit =
     app/main.py
-
+    app/database_seeds.py
+    app/response_codes.py  
 
 
 [report]

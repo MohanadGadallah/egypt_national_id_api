@@ -11,10 +11,13 @@ from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.schema import InputID
 from app.response_codes import SuccessCodeEnum, ErrorCodeEnum
 from app.national_id import NationalID
-from app.database_settings import DB_MANAGER
+from app.database_settings import DB_MANAGER, db_session
+from app.database_operations import validate_api_key
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -118,11 +121,22 @@ app.state.limiter = limiter
 # API
 
 
-def verify_api_key(x_api_key: str = Header(None)):
-    """Validates the API key from the request header."""
-    if x_api_key != "tru":
+async def verify_api_key(x_api_key: str = Header(None), session: AsyncSession = Depends(db_session)) -> bool:
+    """_summary_
+
+    Args:
+        x_api_key (str): service api key .
+        session (AsyncSession): database session. Defaults to Depends(db_session).
+
+    Returns:
+        bool: `True` if it's right also it autoincrement usage, `false`  otherwise 
+    """
+    try:
+        return await validate_api_key(db_session=session, api_key=x_api_key)
+    except Exception as except_error:
+        logger.critical(
+            "[unhandled_error] at verify_api_key error (%s) ", except_error)
         return False
-    return True
 
 
 @app.post("/validate-id")
@@ -140,16 +154,17 @@ async def validate_national_id(data: InputID, request: Request, valid_key: str =
         JSONResponse: A structured response indicating whether the ID is valid,
                       along with extracted data and a message.
     """
-    if not valid_key:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={
-                "data": None,
-                "message": "Unauthorized Access. Thanks for using TRU National ID Service",
-                "code": ErrorCodeEnum.UNAUTHORIZED.value,
-            },
-        )
     try:
+        if not valid_key:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "data": None,
+                    "message": "Unauthorized Access. Thanks for using TRU National ID Service",
+                    "code": ErrorCodeEnum.UNAUTHORIZED.value,
+                },
+            )
+
         national_id = NationalID(id_number=str(data.national_id))
         logger.info("Validation completed. Result: %s",
                     "Valid" if national_id.is_valid else "Fake")
@@ -162,15 +177,14 @@ async def validate_national_id(data: InputID, request: Request, valid_key: str =
                     "code": SuccessCodeEnum.VALID_ID.value
                 }
             )
-        else:
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "data": national_id.__dict__,
-                    "message": "Fake ID .Thanks for using TRU National ID Service",
-                    "code": ErrorCodeEnum.INVALID_ID.value
-                }
-            )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "data": national_id.__dict__,
+                "message": "Fake ID .Thanks for using TRU National ID Service",
+                "code": ErrorCodeEnum.INVALID_ID.value
+            }
+        )
     except Exception as except_error:
         logger.critical("unhandled exception error: %s", except_error)
         return JSONResponse(
