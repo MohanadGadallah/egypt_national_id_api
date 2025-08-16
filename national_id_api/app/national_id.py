@@ -49,6 +49,7 @@ class NationalID:
     month_of_birth: Optional[int] = None
     month_of_birth_name: Optional[str] = None
     day_of_birth: Optional[int] = None
+    gender:Optional[str]=None
     governorate_id: Optional[str] = None
     governorate_name:Optional[int]=None
     unique_num: Optional[int] = None
@@ -120,5 +121,21 @@ class NationalID:
             return True
         
         return False
-    
+    def validate_day(self) -> bool:
+        """_summary_
+
+        Returns:
+            bool: _description_
+        """
+        self.day_of_birth = int(self.id_number[5:7])
+        if self.month_of_birth in [1, 3, 5, 7, 8, 10, 12]:
+            return self.day_of_birth in range(1, 32)
+        elif self.month_of_birth in [4, 6, 9, 11]:
+            return self.day_of_birth in range(1, 31)
+        elif self.month_of_birth == 2:
+            if self.year_of_birth % 4 == 0:
+                return self.day_of_birth in range(30) 
+            else:
+                return self.day_of_birth in range(29)
+        return False
     
