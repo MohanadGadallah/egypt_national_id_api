@@ -1,11 +1,14 @@
 import logging
 from datetime import datetime, timezone
 
+from fastapi import status, HTTPException
+
 import sqlalchemy as sa
 from sqlalchemy.exc import DBAPIError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import APIKeyUsage
+from app.response_codes import ErrorCodeEnum
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -14,12 +17,12 @@ async def validate_api_key(db_session: AsyncSession, api_key: str) -> bool:
     """
     Validates an API key and atomically increments its usage count with row level locking.
 
-    Args:
-        db_session (AsyncSession): Database session.
-        api_key (str): API key to validate.
+    Raises:
+        HTTPException: with 401 if the key is invalid,
+                       503 if there’s a DB or unknown error.
 
     Returns:
-        bool: `True`if key is valid and updated, `False` otherwise.
+        True if the key is valid.
     """
     try:
         query = (
@@ -41,13 +44,38 @@ async def validate_api_key(db_session: AsyncSession, api_key: str) -> bool:
             return True
 
         logger.error("[validate_api_key] : no key found")
-        return False
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "data": None,
+                "message": "Unauthorized Access. Thanks for using TRU National ID Service",
+                "code": ErrorCodeEnum.UNAUTHORIZED.value,
+            },
+        )
 
-    except (OperationalError, DBAPIError) as database_error:
+    except HTTPException:
+        raise
+    except (OperationalError, DBAPIError) as db_error:
         await db_session.rollback()
-        logger.error("[validate_api_key] database error (%s)", database_error)
-        return False
-    except Exception as except_error:
+        logger.error("[validate_api_key] database error: %s", db_error)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "data": None,
+                "message": "Service temporarily unavailable. Please try again later.",
+                "code": ErrorCodeEnum.SERVICE_UNAVAILABLE.value,
+            },
+        ) from db_error
+
+    except Exception as unexpected_error:
+        await db_session.rollback()
         logger.critical(
-            "[unhandled_database_error] at validate_api_key error (%s)", except_error)
-        return False
+            "[validate_api_key] unexpected error: %s", unexpected_error)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "data": None,
+                "message": "Service temporarily unavailable due to an internal error.",
+                "code": ErrorCodeEnum.SERVICE_UNAVAILABLE.value,
+            },
+        ) from unexpected_error
