@@ -1,0 +1,11 @@
+from enum import Enum
+
+class ErrorCodeEnum(Enum):
+    INVALID_ID = "INVALID_ID"
+    PARSING_ERROR = "PARSING_ERROR"
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    UNAUTHORIZED = "UNAUTHORIZED"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+
+class SuccessCodeEnum(Enum):
+    VALID_ID = "VALID_ID"

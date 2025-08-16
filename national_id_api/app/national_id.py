@@ -45,6 +45,7 @@ class NationalID:
     """
     id_number: str
     is_valid:bool=False
+    fake_id_reason: Optional[str] = "" 
     year_of_birth: Optional[int] = None
     month_of_birth: Optional[int] = None
     month_of_birth_name: Optional[str] = None
@@ -52,20 +53,34 @@ class NationalID:
     gender:Optional[str]=None
     governorate_id: Optional[int] = None
     governorate_name:Optional[str]=None
-    unique_num: Optional[int] = None
     century: Optional[int] = None
-    verification_digit: Optional[int] = None
     
     
     def __post_init__(self):
-        """_summary_
-
-        Raises:
-            ValueError: _description_
+        """ starting validation process.
         """
-        if not self.validate_length_and_digits():
-            raise ValueError(f"Invalid National ID number: {self.id_number}")
-    def validate_length_and_digits(self) -> bool:
+        self._validate_id()
+        
+        
+    def _validate_id(self) -> None:
+        """ check wether this id is fake or not.
+        """
+        validation_results:list[bool] = [
+            self._validate_length_and_digits(),
+            self._validate_century(),
+            self._validate_year(),
+            self._validate_month(),
+            self._validate_day(),
+            self._validate_governorate(),
+            self._validate_gender(),
+        ]
+        if not all(validation_results):
+            self.is_valid = False
+        else:
+            unique_num = int(self.id_number[9:13])
+            self.gender = "Male" if unique_num % 2 != 0 else "Female"
+            self.is_valid = True
+    def _validate_length_and_digits(self) -> bool:
         """The Egyptian national ID number contains 14 digits.
 
         Returns:
@@ -74,9 +89,10 @@ class NationalID:
         self.id_number=str(self.id_number)
         if len(self.id_number) == 14 and self.id_number.isdigit():
             return True
+        self.fake_id_reason=f"{self.fake_id_reason} invalid length or non numeric string and"
         return False
     
-    def validate_century(self) -> bool:
+    def _validate_century(self) -> bool:
         """_summary_
 
         Returns:
@@ -85,9 +101,10 @@ class NationalID:
         self.century = int(self.id_number[0])
         if self.century in [2, 3]:
             return True
+        self.fake_id_reason = f"{self.fake_id_reason} invalid century part. and"
         return False
     
-    def validate_year(self) -> bool:
+    def _validate_year(self) -> bool:
         """Validates if the year part of the ID is not in the future
 
         Returns:
@@ -96,20 +113,19 @@ class NationalID:
         
         self.year_of_birth = int(self.id_number[1:3])  
         current_year = datetime.now().year
-
+        full_year:int=3000
 
         if self.century == 2:
             full_year = 1900 + self.year_of_birth  
         elif self.century == 3:
             full_year = 2000 + self.year_of_birth  
-        else:
-            full_year = self.year_of_birth  
 
         if full_year > current_year:
+            self.fake_id_reason = f"{self.fake_id_reason} Year of birth is in the future. and"
             return False  
         self.year_of_birth=full_year
         return True
-    def validate_month(self) -> bool:
+    def _validate_month(self) -> bool:
         """validates the month part of the ID (1 to 12)
 
         Returns:
@@ -119,9 +135,9 @@ class NationalID:
         if self.month_of_birth in range(1, 13):
             self.month_of_birth_name = calendar.month_name[self.month_of_birth]
             return True
-        
+        self.fake_id_reason = f"{self.fake_id_reason} invalid month. and"
         return False
-    def validate_day(self) -> bool:
+    def _validate_day(self) -> bool:
         """_summary_
 
         Returns:
@@ -137,11 +153,29 @@ class NationalID:
                 return self.day_of_birth in range(30) 
             else:
                 return self.day_of_birth in range(29)
+        self.fake_id_reason = f"{self.fake_id_reason} invalid day for the month. and"
         return False
-    def validate_governorate(self) -> bool:
+    def _validate_governorate(self) -> bool:
+        """_summary_
+
+        Returns:
+            bool: _description_
+        """
         self.governorate_id = int(self.id_number[7:9])
         for governorate in Governorates:
             if governorate.value == self.governorate_id:
                 self.governorate_name = governorate.name.capitalize().replace("_"," ")
                 return True
+        self.fake_id_reason = f"{self.fake_id_reason} invalid governorate ID. "
         return False
+    
+    def _validate_gender(self)-> bool:
+        """_summary_
+
+        Returns:
+            bool: _description_
+        """
+        unique_num = int(self.id_number[9:13])
+        self.gender = "Male" if unique_num % 2 != 0 else "Female"
+        return True
+            

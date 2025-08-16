@@ -1,9 +1,10 @@
 import logging
-from fastapi import FastAPI,Request,HTTPException
+from fastapi import FastAPI,Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.schema import InputID
+from app.response_codes import SuccessCodeEnum,ErrorCodeEnum
 from app.national_id import NationalID
 
 logging.basicConfig(
@@ -59,27 +60,41 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={
             "data": None,
             "message":f"Validation failed: {str(exc.body)}",
-            "code": "ErrorCodeEnum.PARSING_ERROR.value",
+            "code": ErrorCodeEnum.PARSING_ERROR.value,
         }
     )
 
 
-@app.post("/")
-async def test_endpoint(data:InputID,request:Request):
+@app.post("/validate-id")
+async def validate_national_id(data:InputID,request:Request):
     """_summary_
 
     Returns:
         _type_: _description_
     """
     national_id = NationalID(id_number=data.national_id)
-    national_id.validate_century()
-    national_id.validate_year()
-    national_id.validate_month()
-    national_id.validate_day()
-    national_id.validate_governorate()
     logger.info("test done ")
     logger.error("ddd")
     logger.critical("gggg")
     logger.debug("dd")
-    return {"message": national_id.governorate_name}
+    if national_id.is_valid:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "data": national_id.__dict__,
+                "message": " Valid ID .thanks for using TRU National ID Service",
+                "code": SuccessCodeEnum.VALID_ID.value
+            }
+        )
+    else:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "data": national_id.__dict__,
+                "message": "Fake ID .Thanks for using TRU National ID Service",
+                "code": ErrorCodeEnum.INVALID_ID.value
+            }
+        )
+        
+
 
