@@ -176,7 +176,7 @@ class NationalID:
         """ to validate if it's `male` or `female`
 
         Returns:
-            bool: true because it will be a female or male.
+            bool: always true because it will be a female or male.
         """
         unique_num = int(self.id_number[9:13])
         self.gender = "Male" if unique_num % 2 != 0 else "Female"
