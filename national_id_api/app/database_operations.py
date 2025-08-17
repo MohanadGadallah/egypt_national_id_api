@@ -19,7 +19,7 @@ async def validate_api_key(db_session: AsyncSession, api_key: str) -> bool:
 
     Raises:
         HTTPException: with 401 if the key is invalid,
-                       503 if there’s a DB or unknown error.
+                       503 if there id a DB or unknown error.
 
     Returns:
         True if the key is valid.
