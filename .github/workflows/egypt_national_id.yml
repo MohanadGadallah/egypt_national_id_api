@@ -58,7 +58,7 @@ jobs:
           poetry install --with dev --no-root
           poetry add --dev flake8
 
-      - name: 📂 Run Alembic migrations
+      - name:  Run Alembic migrations
         run: poetry run alembic upgrade head
 
       - name:  Seed the database
