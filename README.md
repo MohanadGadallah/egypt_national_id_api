@@ -49,20 +49,16 @@ x-api-key: tru
 
 ---
 
-##  Local Development Setup
+## Design Trade-offs and Considerations
 
-* Requires Python 3.13+, Poetry.
-* Install dependencies with `poetry install`.
-* Run PostgreSQL via Docker separately.
-* Adjust `.env` for local DB connection.
-* Run tests with `poetry run pytest`.
+* **Row-level locks** are used to protect API usage tracking under concurrent requests. This prevents race conditions with minimal complexity especially important when a company shares the same API key across multiple IPs.
+* **Rate limiting is enforced per IP address** to prevent abuse, regardless of API key rotation.
+* I considered separating **authentication and usage tracking** into distinct components for better modularity and scalability, but for simplicity, both are currently handled within the same logic.
+* **Async usage tracking via a background task queue** (e.g. queue,background task(FastAPI)) was considered to improve performance under high load, but was not implemented to keep the system simple for this task.
+* **No national ID data is stored** in the database  privacy is preserved by design.
+* Two isolated environments (dev and prod) are set up using **Poetry** as the package manager.(See(click on it)):[`pyproject.toml`](national_id_api/pyproject.toml) 
+* In the event of a database outage, it's preferable to **serve the request and potentially lose some usage data** rather than reject the request prioritizing availability and customer experience.
 
----
-
-## Concurrency Handling & Rate Limiting
-
-* API usage increments (per API key) are protected using a database row-level lock to ensure consistency under concurrent requests.
-* **Rate limiting is enforced by tracking the number of requests per client IP address**, not by API key, to prevent service abuse regardless of the API key used.
 
 ---
 
@@ -145,8 +141,19 @@ The project tracks API usage per API key in a dedicated table with the following
 * **last_request_at**: Timestamp of the last API call.
 
 
+
 ---
 
+##  Local Development Setup
+
+* Requires Python 3.13+, Poetry.
+* Install dependencies with `poetry install`.
+* Run PostgreSQL via Docker separately.
+* Adjust `.env` for local DB connection.
+* Run tests with `poetry run pytest`.
+
+
+---
 ##  Summary
 
 * Chose FastAPI over Django for async support because I’m more familiar with it, it’s lightweight, and I don’t use LLM in task assessments.
@@ -185,10 +192,4 @@ PGADMIN_DEFAULT_PASSWORD=tru
 
 * The HTML coverage report is generated under `tests/reports/html`.
 * Note: The `.gitignore` currently excludes the HTML coverage folder, but i will add it.
-
-
-
-##  Final Notes
-
-This project was developed as part of a technical assessment, It is **not yet production-ready** 
 
