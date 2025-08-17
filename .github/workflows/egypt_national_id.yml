@@ -58,16 +58,17 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --with dev --no-root
           poetry add --dev autopep8
+      - name: Format code with autopep8
+        run: |
+           cd national_id_api
+           autopep8 --in-place --recursive --max-line-length 500 .
 
       - name:  Run Alembic migrations
         run: |
           cd national_id_api
           poetry run alembic upgrade head
 
-      - name: Format code with autopep8
-        run: |
-           cd national_id_api
-           poetry autopep8 --in-place --recursive --max-line-length 500 .
+
 
       - name: Run tests with pytest
         run: poetry run pytest
