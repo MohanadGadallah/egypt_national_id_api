@@ -1,0 +1,28 @@
+FROM python:3.13.7-slim AS base
+
+RUN groupadd -g 1001 appuser && \
+    useradd --uid 1001 --gid 1001 --no-create-home --shell /usr/sbin/nologin --comment '' appuser
+
+WORKDIR /national_id_api
+
+COPY pyproject.toml poetry.lock .env ./
+
+RUN pip install poetry==2.1.4 && poetry config virtualenvs.create false
+
+FROM base AS dependencies
+
+RUN poetry install --without dev --no-root
+
+FROM base AS runtime
+
+COPY --from=dependencies /usr/local /usr/local
+ENV PYTHONPATH=/national_id_api
+COPY app ./app
+COPY alembic.ini .
+COPY database_migrations ./database_migrations
+EXPOSE 8000
+
+
+USER appuser
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000","--loop","uvloop"]

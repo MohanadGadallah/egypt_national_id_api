@@ -1,0 +1,29 @@
+[run]
+source = .
+include = app/*
+relative_files = True
+branch = True
+concurrency = multiprocessing,thread,greenlet
+omit =
+    app/main.py
+    app/database_seeds.py
+    app/response_codes.py  
+    app/custom_exceptions.py 
+
+
+[report]
+include = app/*
+show_missing = true
+skip_covered = true
+
+[html]
+directory = tests/reports/html  
+
+
+[xml]
+output = tests/reports/coverage.xml
+
+[paths]
+source = 
+    app/
+    national_id_api/app/
