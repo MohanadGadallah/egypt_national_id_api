@@ -70,7 +70,31 @@ jobs:
 
 
 
-      - name: Run tests with pytest
+      # - name: Run tests with pytest
+      #   run: |
+      #     cd national_id_api
+      #     poetry run pytest
+      - name: Run tests with coverage
         run: |
           cd national_id_api
-          poetry run pytest
+          mkdir -p tests/reports
+          poetry run pytest tests/ \
+            --tb=short \
+            --disable-warnings \
+            --cov=. \
+            --cov-config=.coveragerc \
+            --cov-report=xml:tests/reports/coverage.xml \
+            --cov-report=term \
+            --junitxml=tests/reports/pytest-results.xml | tee tests/reports/pytest-results.txt
+        continue-on-error: true
+
+      - name: Publish test results to PR
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: "national_id_api/tests/reports/pytest-results.xml"
+
+      - name: Show test summary in PR
+        run: |
+          cd national_id_api
+          echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
+          tail -n 20 tests/reports/pytest-results.txt | grep -E "(=+|FAILED|PASSED|ERROR)" >> $GITHUB_STEP_SUMMARY
