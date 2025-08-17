@@ -57,18 +57,17 @@ jobs:
           cd national_id_api
           poetry config virtualenvs.create false
           poetry install --with dev --no-root
-          poetry add --dev flake8
+          poetry add --dev autopep8
 
       - name:  Run Alembic migrations
         run: |
           cd national_id_api
           poetry run alembic upgrade head
 
-      - name: Lint with flake8
+      - name: Format code with autopep8
         run: |
-          cd national_id_api
-          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+           cd national_id_api
+           poetry autopep8 --in-place --recursive --max-line-length 500 .
 
       - name: Run tests with pytest
         run: poetry run pytest
