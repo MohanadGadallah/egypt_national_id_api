@@ -123,7 +123,7 @@ async def validate_national_id(data: InputID, request: Request, valid_key: str =
             status_code=status.HTTP_200_OK,
             content={
                 "data": national_id.__dict__,
-                "message": "Fake ID .Thanks for using TRU National ID Service",
+                "message": "Invalid ID .Thanks for using TRU National ID Service",
                 "code": ErrorCodeEnum.INVALID_ID.value
             }
         )
