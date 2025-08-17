@@ -64,11 +64,6 @@ jobs:
           cd national_id_api
           poetry run alembic upgrade head
 
-      - name:  Seed the database
-        run: |
-          cd national_id_api
-          poetry run python app/database_seeds.py
-
       - name: Lint with flake8
         run: |
           poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
