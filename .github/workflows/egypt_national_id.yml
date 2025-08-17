@@ -60,10 +60,14 @@ jobs:
           poetry add --dev flake8
 
       - name:  Run Alembic migrations
-        run: poetry run alembic upgrade head
+        run: |
+          cd national_id_api
+          poetry run alembic upgrade head
 
       - name:  Seed the database
-        run: poetry run python app/database_seeds.py
+        run: |
+          cd national_id_api
+          poetry run python app/database_seeds.py
 
       - name: Lint with flake8
         run: |
