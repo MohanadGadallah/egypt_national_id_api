@@ -14,6 +14,7 @@ on:
 permissions:
   contents: read
   checks: write
+  issues: write
 
 jobs:
   build:
@@ -93,11 +94,11 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         with:
           report_paths: "national_id_api/tests/reports/pytest-results.xml"
-
       - name: Create test + coverage comment
         run: |
           cd national_id_api
-          echo "### 🧪 Test & Coverage Summary" | tee pr_comment.md >> $GITHUB_STEP_SUMMARY
+          echo "<!-- test-and-coverage-comment -->" > pr_comment.md
+          echo "### 🧪 Test & Coverage Summary" | tee -a pr_comment.md >> $GITHUB_STEP_SUMMARY
           echo '```' | tee -a pr_comment.md >> $GITHUB_STEP_SUMMARY
           tail -n 20 tests/reports/pytest-results.txt | grep -E "={4,}|PASSED|FAILED|SKIPPED|ERROR|warnings" | tee -a pr_comment.md >> $GITHUB_STEP_SUMMARY
           echo "" | tee -a pr_comment.md >> $GITHUB_STEP_SUMMARY
@@ -111,17 +112,21 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-includes: "<!-- test-and-coverage-comment -->"
+
       - name: Create test & coverage comment
         if: steps.find-comment.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v4
         with:
+          token: ${{ secrets.NATIONAL_ID_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body-file: national_id_api/pr_comment.md
           reactions: rocket
+
       - name: Update test & coverage comment
         if: steps.find-comment.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v4
         with:
+          token: ${{ secrets.NATIONAL_ID_TOKEN }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           body-file: national_id_api/pr_comment.md
           reactions: hooray
