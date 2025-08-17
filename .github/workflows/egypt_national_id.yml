@@ -54,6 +54,7 @@ jobs:
 
       - name:  Install dependencies
         run: |
+          cd national_id_api
           poetry config virtualenvs.create false
           poetry install --with dev --no-root
           poetry add --dev flake8
