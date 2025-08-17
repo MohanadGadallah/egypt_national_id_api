@@ -94,8 +94,10 @@ jobs:
         with:
           report_paths: "national_id_api/tests/reports/pytest-results.xml"
 
-      - name: Show test summary in PR
+      - name: Show test summary and coverage in PR
         run: |
           cd national_id_api
-          echo "### Test Summary" >> $GITHUB_STEP_SUMMARY
-          tail -n 20 tests/reports/pytest-results.txt | grep -E "(=+|FAILED|PASSED|ERROR)" >> $GITHUB_STEP_SUMMARY
+          echo "###  Test & Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -A 1000 "^Name.*Stmts" tests/reports/pytest-results.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
