@@ -44,7 +44,7 @@ This project is a backend API built with **FastAPI** to validate Egyptian nation
 Include header:
 
 ```
-x-api-key: tru
+x-api-key: test
 ```
 
 ---
@@ -69,7 +69,7 @@ x-api-key: tru
 ```bash
 curl -X POST http://localhost:8000/validate-id \
   -H "accept: application/json" \
-  -H "x-api-key: tru" \
+  -H "x-api-key: test" \
   -H "Content-Type: application/json" \
   -d '{"national_id": 10000000000000}'
 ```
@@ -101,7 +101,7 @@ Response
 ```bash
 curl -X POST http://localhost:8000/validate-id \
   -H "accept: application/json" \
-  -H "x-api-key: tru" \
+  -H "x-api-key: test" \
   -H "Content-Type: application/json" \
   -d '{"national_id": 29905228800910}'
 ```
@@ -123,7 +123,7 @@ Response
     "governorate_name": "Outside the republic",
     "century": 2
   },
-  "message": " Valid ID .thanks for using TRU National ID Service",
+  "message": " Valid ID .thanks for using  National ID Service",
   "code": "VALID_ID"
 }
 ```
@@ -171,19 +171,19 @@ The project tracks API usage per API key in a dedicated table with the following
 `.env`
 
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:tru@postgres:5432/TRUDATABASE
-TEST_DATABASE_URL=postgresql+asyncpg://postgres:tru@postgres:5432/TRUDATABASE
+DATABASE_URL=postgresql+asyncpg://postgres:test@postgres:5432/APIUSAGE
+TEST_DATABASE_URL=postgresql+asyncpg://postgres:test@postgres:5432/APIUSAGE
 ```
 
 `database.env`
 
 ```env
-POSTGRES_DB=TRUDATABASE
+POSTGRES_DB=APIUSAGE
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=tru
+POSTGRES_PASSWORD=test
 
-PGADMIN_DEFAULT_EMAIL=admin@tru.net
-PGADMIN_DEFAULT_PASSWORD=tru
+PGADMIN_DEFAULT_EMAIL=admin@gmail.net
+PGADMIN_DEFAULT_PASSWORD=12345678
 ```
 
 ---
