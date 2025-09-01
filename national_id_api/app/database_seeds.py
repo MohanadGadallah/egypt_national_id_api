@@ -10,8 +10,8 @@ async def seed_tru_api_key():
     async with DB_MANAGER.session() as session:
         try:
             stmt = insert(APIKeyUsage).values(
-                company_name="Tru",
-                api_key="tru",
+                company_name="test",
+                api_key="test",
                 usage_count=0,
                 last_request_at=None,
             ).on_conflict_do_nothing(index_elements=["api_key"])

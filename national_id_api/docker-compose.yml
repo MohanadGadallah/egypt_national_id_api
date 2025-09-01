@@ -1,7 +1,7 @@
 
 services:
   app:
-    container_name: tru_national_id
+    container_name: egypt_national_id
     build:
       context: .
     ports:
@@ -20,7 +20,7 @@ services:
 
   postgres:
     image: postgres:17.0
-    container_name: Tru_database
+    container_name: national_id_database
     env_file:
       - ./database.env
     ports:
@@ -31,7 +31,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d TRUDATABASE -h localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d APIUSAGE -h localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
