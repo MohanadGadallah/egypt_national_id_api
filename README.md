@@ -91,7 +91,7 @@ Response
     "governorate_name": null,
     "century": 1
   },
-  "message": "Invalid ID .Thanks for using TRU National ID Service",
+  "message": "Invalid ID .Thanks for using  National ID Service",
   "code": "INVALID_ID"
 }
 ```
